@@ -3,9 +3,10 @@ import {
     What3wordsAutosuggest,
     What3wordsMap
   } from "@what3words/react-components";
+import { whatThreeWordsKey, googleKey } from './keys'
   
-  const API_KEY = "QYFSUFHI";
-  const MAP_API_KEY = "AIzaSyA6QXt8Vbg_VUnXcvmyb5J8OueJNUNAH-g";
+  const API_KEY = whatThreeWordsKey;
+  const MAP_API_KEY = googleKey;
   
   export default function Map() {
     return (
