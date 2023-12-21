@@ -9,86 +9,89 @@ const containerStyle = {
 };
 
 const treasureLocations = [
-  { name: "treasure-1", lat: 52.920724, lng: -1.03536 },
-  { name: "treasure-2", lat: 52.920957, lng: -1.031999 },
-  { name: "treasure-3", lat: 52.920776, lng: -1.033433 },
-  { name: "home", lat: 52.921444, lng: -1.034414 },
-];
-
-const GoogleMapComponent = () => {
-  // the default location will be the Northcoders base in Manchester
-  const [userLocation, setUserLocation] = useState({
-    lat: 53.47375,
-    lng: -2.24026,
-  });
-  const [isInRange, setIsInRange] = useState(false);
-  const [collected, setCollected] = useState(false);
-
-  // if the user scans and they are within the circle, a collect button appears
-
-  const handleScan = useCallback(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition((position) => {
-        const userLatitude = position.coords.latitude;
-        const userLongitude = position.coords.longitude;
-        const userLatLng = { lat: userLatitude, lng: userLongitude };
-        setUserLocation(userLatLng);
-        const distances = treasureLocations.map((treasure) => {
-          return window.google.maps.geometry.spherical.computeDistanceBetween(
-            userLatLng,
-            { lat: treasure.lat, lng: treasure.lng }
-          );
+    { id: "treasure-1", lat: 52.920724, lng: -1.03536 },
+    { id: "treasure-2", lat: 52.920957, lng: -1.031999 },
+    { id: "treasure-3", lat: 52.920776, lng: -1.033433 },
+    { id: "home", lat: 52.921444, lng: -1.034414 },
+  ];
+  
+  const GoogleMapComponent = () => {
+    const [userLocation, setUserLocation] = useState({
+      lat: 53.47375,
+      lng: -2.24026,
+    });
+    const [isInRange, setIsInRange] = useState(false);
+    const [collectedTreasures, setCollectedTreasures] = useState({});
+  
+    const handleScan = useCallback(() => {
+      if (navigator.geolocation) {
+        const watchId = navigator.geolocation.watchPosition((position) => {
+          const userLatitude = position.coords.latitude;
+          const userLongitude = position.coords.longitude;
+          const userLatLng = { lat: userLatitude, lng: userLongitude };
+          setUserLocation(userLatLng);
+  
+          const updatedCollectedTreasures = { ...collectedTreasures };
+  
+          treasureLocations.forEach((treasure) => {
+            const distance = window.google.maps.geometry.spherical.computeDistanceBetween(
+              userLatLng,
+              { lat: treasure.lat, lng: treasure.lng }
+            );
+  
+            if (distance <= 20) {
+              setIsInRange(true);
+              updatedCollectedTreasures[treasure.id] = true;
+            } else {
+              setIsInRange(false);
+              // If you want to reset the collected state when out of range, uncomment the line below
+              // updatedCollectedTreasures[treasure.id] = false;
+            }
+          });
+  
+          setCollectedTreasures(updatedCollectedTreasures);
+        }, (error) => {
+          console.error("Error getting location");
         });
-
-        distances.forEach((distance) => {
-          if (distance <= 20) {
-            setIsInRange(true);
-          } else {
-            setIsInRange(false);
-          }
-        });
-        return distances;
-      });
-      (error) => {
-        console.error("Error getting location");
-      };
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, []);
-
-
-  const handleCollect = () => {
-    setCollected(true);
-  };
-
-
-  return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
-      <button
-        className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full'
-        onClick={handleScan}
-      >
-        Scan!
-      </button>
-      <button
-        className={`${
-          isInRange ? "block" : "hidden"
-        } bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full`}
-        onClick={handleCollect}
-      >
-        Grab Treasure!
-      </button>
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={userLocation}
-        zoom={17}
-      >
-        <Marker position={userLocation} />
-        <ul>
-          {treasureLocations.map((treasure) => {
-            return (
-              <li key={treasure.lat} className={collected ? "hidden" : null}>
-                {!collected && (
+  
+        // Clear the watch when the component is unmounted or no longer needed
+        return () => navigator.geolocation.clearWatch(watchId);
+      }
+    }, [collectedTreasures]);
+  
+    const handleCollect = (treasureId) => {
+      setCollectedTreasures((prevCollectedTreasures) => ({
+        ...prevCollectedTreasures,
+        [treasureId]: true,
+      }));
+    };
+  
+    return (
+      <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
+        <button
+          className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full'
+          onClick={handleScan}
+        >
+          Scan!
+        </button>
+        <button
+          className={`${
+            isInRange ? "block" : "hidden"
+          } bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full`}
+          onClick={() => handleCollect("treasure-1")} // Specify the treasure id you want to collect
+        >
+          Grab Treasure!
+        </button>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={userLocation}
+          zoom={17}
+        >
+          <Marker position={userLocation} />
+          <ul>
+            {treasureLocations.map((treasure) => (
+              <li key={treasure.id} className={collectedTreasures[treasure.id] ? "hidden" : null}>
+                {!collectedTreasures[treasure.id] && (
                   <>
                     <Marker position={treasure} />
                     <Circle
@@ -105,12 +108,11 @@ const GoogleMapComponent = () => {
                   </>
                 )}
               </li>
-            );
-          })}
-        </ul>
-      </GoogleMap>
-    </LoadScript>
-  );
-};
-
-export default GoogleMapComponent;
+            ))}
+          </ul>
+        </GoogleMap>
+      </LoadScript>
+    );
+  };
+  
+  export default GoogleMapComponent;
