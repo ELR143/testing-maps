@@ -64,7 +64,7 @@ const GoogleMapComponent = () => {
             );
           });
           distances.forEach((distance) => {
-            if (distance <= 100) {
+            if (distance <= 10) {
               setIsInRange(true);
             }
           });
@@ -99,7 +99,7 @@ const GoogleMapComponent = () => {
         center={userLocation}
         zoom={17}
       >
-        <Marker position={center} />
+        <Marker position={userLocation} />
         {treasureLocations.map((treasure) => {
           return (
             <>
@@ -114,7 +114,7 @@ const GoogleMapComponent = () => {
                   strokeWeight: 2,
                   fillColor: "#FF0000",
                   fillOpacity: 0.35,
-                  visible: false,
+                //   visible: false,
                 }}
               />
             </>
