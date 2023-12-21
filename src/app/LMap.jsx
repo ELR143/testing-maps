@@ -2,7 +2,7 @@
 "use client";
 import React, { createContext, useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Marker, Circle } from "@react-google-maps/api";
-import { googleKey } from './keys'
+import { googleKey } from "./keys";
 
 const containerStyle = {
   width: "100%",
@@ -35,18 +35,38 @@ const GoogleMapComponent = () => {
     lat: 53.47375,
     lng: -2.24026,
   });
+  const [isInRange, setIsInRange] = useState(false);
 
   // if the user scans and they are within the circle, a collect button appears
+  
+  const getDistances = () => {
+    const distances = treasureLocations.map((treasure) => {
+      return window.google.maps.geometry.spherical.computeDistanceBetween(
+        userLatLng,
+        treasure
+      );
+    });
+    console.log(distances)
+    return distances
+
+}
 
   const handleScan = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          console.log(position);
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          setUserLocation({ lat: latitude, lng: longitude });
-          console.log(userLocation);
+          const userLatitude = position.coords.latitude;
+          const userLongitude = position.coords.longitude;
+          const userLatLng = { lat: userLatitude, lng: userLongitude };
+          setUserLocation(userLatLng);
+          const distances = treasureLocations.map((treasure) => {
+            return window.google.maps.geometry.spherical.computeDistanceBetween(
+              userLatLng,
+              treasure
+            );
+          });
+          console.log(distances)
+          // Further processing using the distances array if needed
         },
         (error) => {
           console.error("Error getting location");
@@ -54,7 +74,6 @@ const GoogleMapComponent = () => {
       );
     }
   };
-
 
   useEffect(() => {}, []);
 
@@ -80,12 +99,12 @@ const GoogleMapComponent = () => {
                 center={treasure}
                 radius={10}
                 options={{
-                    strokeColor: "#FF0000",
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
-                    fillColor: "#FF0000",
-                    fillOpacity: 0.35,
-                    visible: false,
+                  strokeColor: "#FF0000",
+                  strokeOpacity: 0.8,
+                  strokeWeight: 2,
+                  fillColor: "#FF0000",
+                  fillOpacity: 0.35,
+                  visible: false,
                 }}
               />
             </>
