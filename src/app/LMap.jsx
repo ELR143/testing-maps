@@ -1,6 +1,6 @@
 // components/GoogleMap.js
 "use client";
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useCallback } from "react";
 import { GoogleMap, LoadScript, Marker, Circle } from "@react-google-maps/api";
 
 const containerStyle = {
@@ -8,24 +8,10 @@ const containerStyle = {
   height: "400px",
 };
 
-const center = {
-  lat: 53.47375,
-  lng: -2.24026,
-};
-
 const treasureLocations = [
-  {
-    lat: 52.920724,
-    lng: -1.03536,
-  },
-  {
-    lat: 52.920957,
-    lng: -1.031999,
-  },
-  {
-    lat: 52.920776,
-    lng: -1.033433,
-  },
+  { name: "treasure-1", lat: 52.920724, lng: -1.03536 },
+  { name: "treasure-2", lat: 52.920957, lng: -1.031999 },
+  { name: "treasure-3", lat: 52.920776, lng: -1.033433 },
 ];
 
 const GoogleMapComponent = () => {
@@ -35,37 +21,31 @@ const GoogleMapComponent = () => {
     lng: -2.24026,
   });
   const [isInRange, setIsInRange] = useState(false);
+  const [collected, setCollected] = useState(false);
 
   // if the user scans and they are within the circle, a collect button appears
 
-  const getDistances = () => {
-    const distances = treasureLocations.map((treasure) => {
-      return window.google.maps.geometry.spherical.computeDistanceBetween(
-        userLatLng,
-        treasure
-      );
-    });
-    console.log(distances);
-    return distances;
-  };
-
-  const handleScan = () => {
+  const handleScan = useCallback(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+      navigator.geolocation.watchPosition(
         (position) => {
           const userLatitude = position.coords.latitude;
           const userLongitude = position.coords.longitude;
           const userLatLng = { lat: userLatitude, lng: userLongitude };
           setUserLocation(userLatLng);
+
           const distances = treasureLocations.map((treasure) => {
             return window.google.maps.geometry.spherical.computeDistanceBetween(
               userLatLng,
-              treasure
+              { lat: treasure.lat, lng: treasure.lng }
             );
           });
+
           distances.forEach((distance) => {
-            if (distance <= 10) {
+            if (distance <= 20) {
               setIsInRange(true);
+            } else {
+              setIsInRange(false);
             }
           });
         },
@@ -74,9 +54,11 @@ const GoogleMapComponent = () => {
         }
       );
     }
-  };
+  }, []);
 
-  useEffect(() => {}, []);
+  const handleCollect = () => {
+    setCollected(true);
+  };
 
   return (
     <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
@@ -90,7 +72,7 @@ const GoogleMapComponent = () => {
         className={`${
           isInRange ? "block" : "hidden"
         } bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full`}
-        onClick={handleScan}
+        onClick={handleCollect}
       >
         Grab Treasure!
       </button>
@@ -100,26 +82,27 @@ const GoogleMapComponent = () => {
         zoom={17}
       >
         <Marker position={userLocation} />
-        {treasureLocations.map((treasure) => {
-          return (
-            <>
-              <Marker key={treasure.lat} position={treasure} />
-              <Circle
-                key={treasure.lng}
-                center={treasure}
-                radius={10}
-                options={{
-                  strokeColor: "#FF0000",
-                  strokeOpacity: 0.8,
-                  strokeWeight: 2,
-                  fillColor: "#FF0000",
-                  fillOpacity: 0.35,
-                //   visible: false,
-                }}
-              />
-            </>
-          );
-        })}
+        <ul>
+          {treasureLocations.map((treasure) => {
+            return (
+              <li key={treasure.lat} className={collected ? "hidden" : "block"}>
+                <Marker position={treasure} />
+                <Circle
+                  center={treasure}
+                  radius={20}
+                  options={{
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: "#FF0000",
+                    fillOpacity: 0.35,
+                    //   visible: false,
+                  }}
+                />
+              </li>
+            );
+          })}
+        </ul>
       </GoogleMap>
     </LoadScript>
   );
