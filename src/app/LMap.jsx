@@ -37,7 +37,7 @@ const GoogleMapComponent = () => {
   const [isInRange, setIsInRange] = useState(false);
 
   // if the user scans and they are within the circle, a collect button appears
-  
+
   const getDistances = () => {
     const distances = treasureLocations.map((treasure) => {
       return window.google.maps.geometry.spherical.computeDistanceBetween(
@@ -45,10 +45,9 @@ const GoogleMapComponent = () => {
         treasure
       );
     });
-    console.log(distances)
-    return distances
-
-}
+    console.log(distances);
+    return distances;
+  };
 
   const handleScan = () => {
     if (navigator.geolocation) {
@@ -64,7 +63,11 @@ const GoogleMapComponent = () => {
               treasure
             );
           });
-          console.log(distances)
+          distances.forEach((distance) => {
+            if (distance <= 100) {
+              setIsInRange(true);
+            }
+          });
         },
         (error) => {
           console.error("Error getting location");
@@ -83,6 +86,14 @@ const GoogleMapComponent = () => {
       >
         Scan!
       </button>
+      <button
+        className={`${
+          isInRange ? "block" : "hidden"
+        } bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full`}
+        onClick={handleScan}
+      >
+        Grab Treasure!
+      </button>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={userLocation}
@@ -93,7 +104,8 @@ const GoogleMapComponent = () => {
           return (
             <>
               <Marker key={treasure.lat} position={treasure} />
-              <Circle key={treasure.lng}
+              <Circle
+                key={treasure.lng}
                 center={treasure}
                 radius={10}
                 options={{
