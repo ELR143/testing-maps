@@ -9,10 +9,10 @@ const containerStyle = {
 };
 
 const treasureLocations = [
-    { id: "treasure-1", lat: 52.920724, lng: -1.03536 },
-    { id: "treasure-2", lat: 52.920957, lng: -1.031999 },
-    { id: "treasure-3", lat: 52.920776, lng: -1.033433 },
-    { id: "home", lat: 52.921444, lng: -1.034414 },
+    { id: 1, lat: 52.920724, lng: -1.03536 },
+    { id: 2, lat: 52.920957, lng: -1.031999 },
+    { id: 3, lat: 52.920776, lng: -1.033433 },
+    { id: 4, lat: 52.921444, lng: -1.034414 },
   ];
   
   const GoogleMapComponent = () => {
@@ -44,8 +44,7 @@ const treasureLocations = [
               updatedCollectedTreasures[treasure.id] = true;
             } else {
               setIsInRange(false);
-              // If you want to reset the collected state when out of range, uncomment the line below
-              // updatedCollectedTreasures[treasure.id] = false;
+              updatedCollectedTreasures[treasure.id] = false;
             }
           });
   
