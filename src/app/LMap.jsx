@@ -2,7 +2,6 @@
 "use client";
 import React, { createContext, useState, useEffect } from "react";
 import { GoogleMap, LoadScript, Marker, Circle } from "@react-google-maps/api";
-import { googleKey } from "./keys";
 
 const containerStyle = {
   width: "100%",
@@ -66,7 +65,6 @@ const GoogleMapComponent = () => {
             );
           });
           console.log(distances)
-          // Further processing using the distances array if needed
         },
         (error) => {
           console.error("Error getting location");
@@ -78,7 +76,7 @@ const GoogleMapComponent = () => {
   useEffect(() => {}, []);
 
   return (
-    <LoadScript googleMapsApiKey={googleKey}>
+    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
       <button
         className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full'
         onClick={handleScan}
@@ -95,7 +93,7 @@ const GoogleMapComponent = () => {
           return (
             <>
               <Marker key={treasure.lat} position={treasure} />
-              <Circle
+              <Circle key={treasure.lng}
                 center={treasure}
                 radius={10}
                 options={{
