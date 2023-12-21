@@ -88,19 +88,22 @@ const GoogleMapComponent = () => {
           {treasureLocations.map((treasure) => {
             return (
               <li key={treasure.lat} className={collected ? "hidden" : null}>
-                <Marker position={treasure} />
-                <Circle
-                  center={treasure}
-                  radius={20}
-                  options={{
-                    strokeColor: "#FF0000",
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
-                    fillColor: "#FF0000",
-                    fillOpacity: 0.35,
-                    //   visible: false,
-                  }}
-                />
+                {!collected && (
+                  <>
+                    <Marker position={treasure} />
+                    <Circle
+                      center={treasure}
+                      radius={20}
+                      options={{
+                        strokeColor: "#FF0000",
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: "#FF0000",
+                        fillOpacity: 0.35,
+                      }}
+                    />
+                  </>
+                )}
               </li>
             );
           })}
