@@ -1,6 +1,6 @@
 // components/GoogleMap.js
 "use client";
-import React, { createContext, useState, useCallback } from "react";
+import React, { createContext, useState, useCallback, useEffect } from "react";
 import { GoogleMap, LoadScript, Marker, Circle } from "@react-google-maps/api";
 
 const containerStyle = {
@@ -12,6 +12,7 @@ const treasureLocations = [
   { name: "treasure-1", lat: 52.920724, lng: -1.03536 },
   { name: "treasure-2", lat: 52.920957, lng: -1.031999 },
   { name: "treasure-3", lat: 52.920776, lng: -1.033433 },
+  { name: "home", lat: 52.921444, lng: -1.034414 },
 ];
 
 const GoogleMapComponent = () => {
@@ -27,38 +28,39 @@ const GoogleMapComponent = () => {
 
   const handleScan = useCallback(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const userLatitude = position.coords.latitude;
-          const userLongitude = position.coords.longitude;
-          const userLatLng = { lat: userLatitude, lng: userLongitude };
-          setUserLocation(userLatLng);
+      navigator.geolocation.watchPosition((position) => {
+        const userLatitude = position.coords.latitude;
+        const userLongitude = position.coords.longitude;
+        const userLatLng = { lat: userLatitude, lng: userLongitude };
+        setUserLocation(userLatLng);
+        const distances = treasureLocations.map((treasure) => {
+          return window.google.maps.geometry.spherical.computeDistanceBetween(
+            userLatLng,
+            { lat: treasure.lat, lng: treasure.lng }
+          );
+        });
 
-          const distances = treasureLocations.map((treasure) => {
-            return window.google.maps.geometry.spherical.computeDistanceBetween(
-              userLatLng,
-              { lat: treasure.lat, lng: treasure.lng }
-            );
-          });
-
-          distances.forEach((distance) => {
-            if (distance <= 20) {
-              setIsInRange(true);
-            } else {
-              setIsInRange(false);
-            }
-          });
-        },
-        (error) => {
-          console.error("Error getting location");
-        }
-      );
+        distances.forEach((distance) => {
+          if (distance <= 20) {
+            setIsInRange(true);
+          } else {
+            setIsInRange(false);
+          }
+        });
+        return distances;
+      });
+      (error) => {
+        console.error("Error getting location");
+      };
+      return () => navigator.geolocation.clearWatch(watchId);
     }
   }, []);
+
 
   const handleCollect = () => {
     setCollected(true);
   };
+
 
   return (
     <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
@@ -85,7 +87,7 @@ const GoogleMapComponent = () => {
         <ul>
           {treasureLocations.map((treasure) => {
             return (
-              <li key={treasure.lat} className={collected ? "hidden" : "block"}>
+              <li key={treasure.lat} className={collected ? "hidden" : null}>
                 <Marker position={treasure} />
                 <Circle
                   center={treasure}
