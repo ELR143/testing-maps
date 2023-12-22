@@ -22,45 +22,45 @@ const GoogleMapComponent = () => {
     lng: -2.24026,
   });
   const [isInRange, setIsInRange] = useState(false);
-  const [collected, setCollected] = useState(false);
+  const [collected, setCollected] = useState(null);
 
   // if the user scans and they are within the circle, a collect button appears
 
-  const handleScan = useCallback(() => {
+  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition((position) => {
         const userLatitude = position.coords.latitude;
         const userLongitude = position.coords.longitude;
         const userLatLng = { lat: userLatitude, lng: userLongitude };
         setUserLocation(userLatLng);
-        const distances = treasureLocations.map((treasure) => {
-          return window.google.maps.geometry.spherical.computeDistanceBetween(
-            userLatLng,
-            { lat: treasure.lat, lng: treasure.lng }
-          );
-        });
-
-        distances.forEach((distance) => {
-          if (distance <= 20) {
-            setIsInRange(true);
-          } else {
-            setIsInRange(false);
-          }
-        });
-        return distances;
       });
-      (error) => {
-        console.error("Error getting location");
-      };
     }
   }, []);
 
-
-  const handleCollect = () => {
-    setCollected(true);
+  const handleScan = () => {
+    const distances = treasureLocations.map((treasure) => {
+      return window.google.maps.geometry.spherical.computeDistanceBetween(
+        userLocation,
+        { lat: treasure.lat, lng: treasure.lng }
+      );
+    });
+    console.log(distances);
+    distances.forEach((distance) => {
+      if (distance <= 20) {
+        setIsInRange(true);
+      } else {
+        setIsInRange(false);
+      }
+    });
+    console.log(isInRange);
+    // (error) => {
+    //   console.error("Error getting location");
+    // };
   };
 
-
+  const handleCollect = () => {
+    setCollected(treasure.id);
+  };
 
   return (
     <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
